@@ -32,7 +32,7 @@ namespace geo
 
 			return vec;
 		}
-		constexpr auto operator +(T arg) -> vector<T, N>
+		auto operator +(T arg) -> vector<T, N>
 		{
 			auto vec = *this;
 
@@ -101,7 +101,7 @@ namespace geo
 
 			return vec;
 		}
-		constexpr auto operator /(T arg) -> vector<T, N>
+		auto operator /(T arg) -> vector<T, N>
 		{
 			auto vec = *this;
 
