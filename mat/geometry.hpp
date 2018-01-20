@@ -22,10 +22,13 @@ namespace geo
 		}
 
 		// OVERLOADS
+		template <typename T, typename my_type, size_t N, size_t my_size>
+		using common_vector_t = vector<std::common_type_t<T, my_type>, std::max(N, my_size)>;
+
 		template <typename my_type, size_t my_size>
-		constexpr auto operator +(const vector<my_type, my_size>& other) -> vector<std::common_type_t<T, my_type>, std::max(N, my_size)>
+		constexpr auto operator +(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
 		{
-			vector<std::common_type_t<T, my_type>, std::max(N, my_size)> vec = *this;
+			common_vector_t<T, my_type, N, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 0 : this->elements[i]) + (i >= other.elements.size() ? 0 : other.elements[i]);
@@ -42,9 +45,9 @@ namespace geo
 			return vec;
 		}
 		template <typename my_type, size_t my_size>
-		constexpr auto operator -(const vector<my_type, my_size>& other) -> vector<std::common_type_t<T, my_type>, std::max(N, my_size)>
+		constexpr auto operator -(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
 		{
-			vector<std::common_type_t<T, my_type>, std::max(N, my_size)> vec = *this;
+			common_vector_t<T, my_type, N, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 0 : this->elements[i]) - (i >= other.elements.size() ? 0 : other.elements[i]);
@@ -61,9 +64,9 @@ namespace geo
 			return vec;
 		}
 		template <typename my_type, size_t my_size>
-		constexpr auto operator *(const vector<my_type, my_size>& other) -> vector<std::common_type_t<T, my_type>, std::max(N, my_size)>
+		constexpr auto operator *(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
 		{
-			vector<std::common_type_t<T, my_type>, std::max(N, my_size)> vec = *this;
+			common_vector_t<T, my_type, N, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 0 : this->elements[i]) * (i >= other.elements.size() ? 0 : other.elements[i]);
@@ -92,9 +95,9 @@ namespace geo
 		}
 
 		template <typename my_type, size_t my_size>
-		constexpr auto operator /(const vector<my_type, my_size>& other) -> vector<std::common_type_t<T, my_type>, std::max(N, my_size)>
+		constexpr auto operator /(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
 		{
-			vector<std::common_type_t<T, my_type>, std::max(N, my_size)> vec = *this;
+			common_vector_t<T, my_type, N, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 1 : this->elements[i]) / (i >= other.elements.size() ? 1 : other.elements[i]);
