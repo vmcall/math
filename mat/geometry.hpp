@@ -10,10 +10,7 @@ namespace geo
 		vector(const R&&... args) : elements{ static_cast<T>(args)... } {}
 
 		vector(vector&& args) = default;
-		vector(const vector& args)
-		{
-			this->elements = args.elements;
-		}
+		vector(const vector& args) = default;
 
 		vector& operator=(const vector& args)
 		{
@@ -144,21 +141,21 @@ namespace geo
 		}
 		
 		// MATHEMATICAL HELPERS
-		auto length() -> double
+		auto length() -> T
 		{
 			T tmp{};
 			std::for_each(this->elements.begin(), this->elements.end(), [&tmp](T x) { tmp += x * x; });
 
-			return sqrt(tmp);
+			return static_cast<T>(sqrt(tmp));
 		};
-		auto distance(const geo::vector<T, N>& other) -> double
+		auto distance(const geo::vector<T, N>& other) -> T
 		{
 			T tmp{};
 
 			for (size_t i = 0; i < N; i++)
 				tmp += (this->elements[i] - other.elements[i]) * (this->elements[i] - other.elements[i]);
 
-			return sqrt(tmp);
+			return static_cast<T>(sqrt(tmp));
 		}
 		auto mid_point(const geo::vector<T, N>& other) -> geo::vector<T, N>
 		{
@@ -169,29 +166,32 @@ namespace geo
 
 			return vec;
 		}
-		auto dot_product(const geo::vector<T, N>& other) -> double
+		auto dot_product(const geo::vector<T, N>& other) -> T
 		{
-			auto product = 0.0;
+			T product{};
 
 			for (size_t i = 0; i < N; i++)
 				product += this->elements[i] * other.elements[i];
 
 			return product;
 		}
-		auto cross_product_2d(geo::vector<T, N>& other) -> double
+		auto cross_product_2d(geo::vector<T, N>& other) -> T
 		{
 			return (this->x() * other.y()) - (other.x() * this->y());
 		}
 		auto formula(geo::vector<T, N>& other) -> std::string
 		{
 			auto midpoint = this->mid_point(other);
+			auto delta = *this - other;
 
-			auto delta = other - *this;
-			auto slope = 1.0 / -(delta.y() / delta.x());
+			auto slope = delta.y() / delta.x();
 
-			std::cout << slope << std::endl;
+			auto b = midpoint.y() - slope * midpoint.x();
 
-			return "";
+			char buffer[25];
+			sprintf_s(buffer, 50, "%0.2lfx + %0.2lf", slope, b);
+
+			return std::string(buffer);
 		}
 
 		private:
@@ -223,9 +223,9 @@ namespace geo
 
 			return pts;
 		}
-		auto sides() -> std::vector<double>
+		auto sides() -> std::vector<T>
 		{
-			std::vector<double> side_vec;
+			std::vector<T> side_vec;
 
 			for (size_t i = 0; i < elements.size(); i++)
 				side_vec.emplace_back(this->elements.at(i).distance(this->elements.at((i + 1) % elements.size())));
@@ -246,9 +246,9 @@ namespace geo
 			
 			return result;
 		}
-		auto area() -> double
+		auto area() -> T
 		{
-			auto result = 0.0;
+			T result{};
 			auto previous_point = this->elements.at(this->elements.size() - 1);
 			for (size_t i = 0; i < elements.size(); i++)
 			{
@@ -262,14 +262,14 @@ namespace geo
 			}
 			return abs(result) / 2;
 		}
-		auto circumference() -> double
+		auto circumference() -> T
 		{	
 			return std::accumulate(this->sides().begin(), this->sides().end(), 0);
 		}
 
-		auto angles() -> std::vector<double>
+		auto angles() -> std::vector<T>
 		{
-			std::vector<double> angles;
+			std::vector<T> angles;
 
 			for (size_t i = 0; i < elements.size(); i++)
 			{
@@ -285,9 +285,9 @@ namespace geo
 		}
 		
 		// TRIANGLES ONLY
-		auto triangle_medians() -> std::vector<double>
+		auto triangle_medians() -> std::vector<T>
 		{
-			std::vector<double> medians;
+			std::vector<T> medians;
 
 			if (elements.size() != 3)
 				return medians;
