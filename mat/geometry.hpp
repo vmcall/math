@@ -22,13 +22,13 @@ namespace geo
 		}
 
 		// OVERLOADS
-		template <typename T, typename my_type, size_t N, size_t my_size>
+		template <typename my_type, size_t my_size>
 		using common_vector_t = vector<std::common_type_t<T, my_type>, std::max(N, my_size)>;
 
 		template <typename my_type, size_t my_size>
-		constexpr auto operator +(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
+		auto operator +(const vector<my_type, my_size>& other) -> common_vector_t<my_type, my_size>
 		{
-			common_vector_t<T, my_type, N, my_size> vec = *this;
+			common_vector_t<my_type, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 0 : this->elements[i]) + (i >= other.elements.size() ? 0 : other.elements[i]);
@@ -45,16 +45,16 @@ namespace geo
 			return vec;
 		}
 		template <typename my_type, size_t my_size>
-		constexpr auto operator -(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
+		auto operator -(const vector<my_type, my_size>& other) -> common_vector_t<my_type, my_size>
 		{
-			common_vector_t<T, my_type, N, my_size> vec = *this;
+			common_vector_t<my_type, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 0 : this->elements[i]) - (i >= other.elements.size() ? 0 : other.elements[i]);
 
 			return vec;
 		}
-		constexpr auto operator -(T arg) -> vector<T, N>
+		auto operator -(T arg) -> vector<T, N>
 		{
 			auto vec = *this;
 
@@ -64,9 +64,9 @@ namespace geo
 			return vec;
 		}
 		template <typename my_type, size_t my_size>
-		constexpr auto operator *(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
+		auto operator *(const vector<my_type, my_size>& other) -> common_vector_t<my_type, my_size>
 		{
-			common_vector_t<T, my_type, N, my_size> vec = *this;
+			common_vector_t<my_type, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 0 : this->elements[i]) * (i >= other.elements.size() ? 0 : other.elements[i]);
@@ -74,12 +74,12 @@ namespace geo
 			return vec;
 		}
 		template <typename my_type, size_t my_size>
-		constexpr auto operator *=(const vector<my_type, my_size>& other) -> vector<T, N>
+		auto operator *=(const vector<my_type, my_size>& other) -> vector<T, N>
 		{
 			*this = *this * other;
 			return *this;
 		}
-		constexpr auto operator *(T arg) -> vector<T, N>
+		auto operator *(T arg) -> vector<T, N>
 		{
 			auto vec = *this;
 
@@ -88,16 +88,16 @@ namespace geo
 
 			return vec;
 		}
-		constexpr auto operator *=(T arg) -> vector<T, N>
+		auto operator *=(T arg) -> vector<T, N>
 		{
 			*this = *this * arg;
 			return *this;
 		}
 
 		template <typename my_type, size_t my_size>
-		constexpr auto operator /(const vector<my_type, my_size>& other) -> common_vector_t<T, my_type, N, my_size>
+		auto operator /(const vector<my_type, my_size>& other) -> common_vector_t<my_type, my_size>
 		{
-			common_vector_t<T, my_type, N, my_size> vec = *this;
+			common_vector_t<my_type, my_size> vec = *this;
 
 			for (std::size_t i = 0; i < std::min(N, my_size); ++i)
 				vec.elements[i] = (i >= this->elements.size() ? 1 : this->elements[i]) / (i >= other.elements.size() ? 1 : other.elements[i]);
@@ -113,7 +113,7 @@ namespace geo
 
 			return vec;
 		}
-		constexpr auto operator /=(T arg) -> vector<T, N>
+		auto operator /=(T arg) -> vector<T, N>
 		{
 			for (std::size_t i = 0; i < N; ++i)
 				this->elements[i] /= arg;
@@ -144,14 +144,14 @@ namespace geo
 		}
 		
 		// MATHEMATICAL HELPERS
-		constexpr auto length() -> double
+		auto length() -> double
 		{
 			T tmp{};
 			std::for_each(this->elements.begin(), this->elements.end(), [&tmp](T x) { tmp += x * x; });
 
 			return sqrt(tmp);
 		};
-		constexpr auto distance(const geo::vector<T, N>& other) -> double
+		auto distance(const geo::vector<T, N>& other) -> double
 		{
 			T tmp{};
 
@@ -160,7 +160,7 @@ namespace geo
 
 			return sqrt(tmp);
 		}
-		constexpr auto mid_point(const geo::vector<T, N>& other) -> geo::vector<T, N>
+		auto mid_point(const geo::vector<T, N>& other) -> geo::vector<T, N>
 		{
 			vector<T, N> vec;
 
@@ -169,7 +169,7 @@ namespace geo
 
 			return vec;
 		}
-		constexpr auto dot_product(const geo::vector<T, N>& other) -> double
+		auto dot_product(const geo::vector<T, N>& other) -> double
 		{
 			auto product = 0.0;
 
@@ -178,11 +178,11 @@ namespace geo
 
 			return product;
 		}
-		constexpr auto cross_product_2d(geo::vector<T, N>& other) -> double
+		auto cross_product_2d(geo::vector<T, N>& other) -> double
 		{
 			return (this->x() * other.y()) - (other.x() * this->y());
 		}
-		constexpr auto formula(geo::vector<T, N>& other) -> std::string
+		auto formula(geo::vector<T, N>& other) -> std::string
 		{
 			auto midpoint = this->mid_point(other);
 
@@ -214,7 +214,7 @@ namespace geo
 		}
 
 		// MATHEMATICAL HELPERS
-		constexpr auto midpoints() -> std::vector<T>
+		auto midpoints() -> std::vector<T>
 		{
 			std::vector<T> pts;
 
@@ -223,7 +223,7 @@ namespace geo
 
 			return pts;
 		}
-		constexpr auto sides() -> std::vector<double>
+		auto sides() -> std::vector<double>
 		{
 			std::vector<double> side_vec;
 
@@ -232,7 +232,7 @@ namespace geo
 
 			return side_vec;
 		}
-		constexpr auto side_formulas() -> std::vector<std::string>
+		auto side_formulas() -> std::vector<std::string>
 		{
 			std::vector<std::string> result;
 
@@ -246,7 +246,7 @@ namespace geo
 			
 			return result;
 		}
-		constexpr auto area() -> double
+		auto area() -> double
 		{
 			auto result = 0.0;
 			auto previous_point = this->elements.at(this->elements.size() - 1);
@@ -262,12 +262,12 @@ namespace geo
 			}
 			return abs(result) / 2;
 		}
-		constexpr auto circumference() -> double
+		auto circumference() -> double
 		{	
 			return std::accumulate(this->sides().begin(), this->sides().end(), 0);
 		}
 
-		constexpr auto angles() -> std::vector<double>
+		auto angles() -> std::vector<double>
 		{
 			std::vector<double> angles;
 
@@ -285,7 +285,7 @@ namespace geo
 		}
 		
 		// TRIANGLES ONLY
-		constexpr auto triangle_medians() -> std::vector<double>
+		auto triangle_medians() -> std::vector<double>
 		{
 			std::vector<double> medians;
 
