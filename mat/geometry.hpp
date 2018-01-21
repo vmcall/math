@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "algebra.hpp"
 
 // VECTOR
 namespace geo
@@ -175,11 +176,13 @@ namespace geo
 
 			return product;
 		}
+
+		// 2D
 		auto cross_product_2d(geo::vector<T, N>& other) -> T
 		{
 			return (this->x() * other.y()) - (other.x() * this->y());
 		}
-		auto formula(geo::vector<T, N>& other) -> std::string
+		auto equation_2d(geo::vector<T, N>& other) -> alg::linear_equation<T>
 		{
 			auto midpoint = this->mid_point(other);
 			auto delta = *this - other;
@@ -188,17 +191,74 @@ namespace geo
 
 			auto b = midpoint.y() - slope * midpoint.x();
 
-			char buffer[25];
-			sprintf_s(buffer, 50, "%0.2lfx + %0.2lf", slope, b);
+			return alg::linear_equation<T>(slope, b);
+		}
+		auto intersection(geo::vector<T, N>& other) -> geo::vector<T, N>&
+		{
 
-			return std::string(buffer);
 		}
 
 		private:
 			std::array<T, N> elements{};
 	};
 
-	template <typename T>
+	template <typename T, size_t N>
+	struct line {
+
+		template <typename ...R>
+		line(R&&... args) : points{ static_cast<geo::vector<T, N, void>>(args)... } {}
+
+		line(line&& args) = default;
+		line(line& args) = default;
+
+		line& operator=(const line& args)
+		{
+			this->points = args.points;
+			return *this;
+		}
+
+		// ACCESSORS
+		using my_vec_t = geo::vector<T, N>;
+		auto origin() -> my_vec_t&
+		{
+			return points[0];
+		}
+		auto end() -> my_vec_t&
+		{
+			return points[1];
+		}
+		auto delta() -> my_vec_t
+		{
+			return this->end() - this->origin();
+		}
+
+		// MATHEMATICAL HELPERS
+		auto length() -> T
+		{
+			return this->origin().distance(this->end());
+		}
+		auto intersection_2d(line<T, N>& other, my_vec_t* out) -> bool
+		{
+			// WIKIPEDIA - LINE INTERSECTION
+			auto denominator = this->delta().x() * other.delta().y() - this->delta().y() * other.delta().x();
+
+			if (denominator == static_cast<T>(0))
+				return false;	
+
+			auto x_1 = (this->origin().x() * this->end().y() - this->origin().y() * this->end().x()) * other.delta().x() - this->delta().x() * (other.origin().x() * other.end().y() - other.origin().y() * other.end().x());
+			auto y_1 = (this->origin().x() * this->end().y() - this->origin().y() * this->end().x()) * other.delta().y() - this->delta().y() * (other.origin().x() * other.end().y() - other.origin().y() * other.end().x());
+			auto determinant = this->delta().x() * other.delta().y() - this->delta().y() * other.delta().x();
+
+			*out = my_vec_t(-(x_1 / determinant), -(y_1 / determinant));
+
+			return true;
+		}
+
+	private:
+		std::array<my_vec_t, 2> points{};
+	};
+	
+	template <typename T, size_t N>
 	struct polygon {
 
 		template <typename ...R>
@@ -213,35 +273,44 @@ namespace geo
 			return *this;
 		}
 
+		using my_vec_t = geo::vector<T, N>;
+		using my_line_t = geo::line<T, N>;
+
 		// MATHEMATICAL HELPERS
-		auto midpoints() -> std::vector<T>
+		auto midpoints() -> std::vector<my_vec_t>
 		{
-			std::vector<T> pts;
+			std::vector<my_vec_t> pts;
 
 			for (size_t i = 0; i < elements.size(); i++)
 				pts.emplace_back(this->elements.at(i).mid_point(this->elements.at((i + 1) % elements.size())));
 
 			return pts;
 		}
-		auto sides() -> std::vector<T>
+		auto sides() -> std::vector<my_line_t>
 		{
-			std::vector<T> side_vec;
+			std::vector<my_line_t> side_vec;
 
 			for (size_t i = 0; i < elements.size(); i++)
-				side_vec.emplace_back(this->elements.at(i).distance(this->elements.at((i + 1) % elements.size())));
+			{
+				auto current_point = this->elements.at(i);
+				auto next_point = this->elements.at((i + 1) % elements.size());
+				auto test = my_line_t(current_point, next_point);
+				side_vec.emplace_back(test);
+			}
+				//side_vec.emplace_back(line<T, N>(, ));
 
 			return side_vec;
 		}
-		auto side_formulas() -> std::vector<std::string>
+		auto side_equation_2d() -> std::vector<alg::linear_equation<T>>
 		{
-			std::vector<std::string> result;
+			std::vector<alg::linear_equation<T>> result;
 
 			for (size_t i = 0; i < elements.size(); i++)
 			{
 				auto current_point = this->elements.at(i);
 				auto next_point = this->elements.at((i + 1) % elements.size());
 
-				result.emplace_back(current_point.formula(next_point));
+				result.emplace_back(current_point.equation_2d(next_point));
 			}
 			
 			return result;
@@ -264,26 +333,61 @@ namespace geo
 		}
 		auto circumference() -> T
 		{	
-			return std::accumulate(this->sides().begin(), this->sides().end(), 0);
+			return std::accumulate(this->side_lengths().begin(), this->side_lengths().end(), 0);
 		}
-
 		auto angles() -> std::vector<T>
 		{
 			std::vector<T> angles;
 
 			for (size_t i = 0; i < elements.size(); i++)
 			{
-				polygon<T> new_triangle{ this->elements[i], this->elements[(i + 1) % elements.size()], this->elements[(i + 2) % elements.size()] };
+				polygon<T> new_triangle{ this->elements[i], , this->elements[(i + 2) % elements.size()] };
 
-				const auto side_a = new_triangle.sides()[0], side_b = new_triangle.sides()[1], side_c = new_triangle.sides()[2];
-
+				// LAW OF COSINUS
+				const auto side_a = new_triangle.sides()[0].length(), side_b = new_triangle.sides()[1].length(), side_c = new_triangle.sides()[2].length;
 				const auto cos0 = (pow(side_a, 2) + pow(side_b, 2) - pow(side_c, 2)) / (2 * side_a * side_b);
 				angles.emplace_back(acos(cos0) * 180 / M_PI);
 			}
 
 			return angles;
 		}
-		
+		auto slopes() -> std::vector<T>
+		{
+			std::vector<T> slopes;
+
+			for (size_t i = 0; i < elements.size(); i++)
+			{
+				auto current_point = this->elements[i];
+				auto next_point = this->elements[(i + 1) % elements.size()];
+				auto delta = current_point - next_point;
+
+				// delta_y / delta_x
+				slopes.emplace_back(delta.y() / delta.x());
+			}
+
+			return slopes;
+		}
+		auto perpendicular_slopes() -> std::vector<T>
+		{
+			std::vector<T> slopes = this->slopes();
+
+			std::for_each(slopes.begin(), slopes.end(), [](T& slope) {slope = -1 / slope; });
+
+			return slopes;
+		}
+		auto circumcenter() -> my_vec_t
+		{
+			my_vec_t result;
+
+			auto midpoints = this->midpoints();
+			auto slopes = this->perpendicular_slopes();
+
+			// y-y1 = m(x-x1)
+			// y = y1 + mx + mx1
+
+			return result;
+		}
+
 		// TRIANGLES ONLY
 		auto triangle_medians() -> std::vector<T>
 		{
@@ -294,9 +398,9 @@ namespace geo
 
 			for (size_t i = 0; i < elements.size(); i++)
 			{
-				auto side_ab = this->sides().at(i);
-				auto side_bc = this->sides().at((i + 1) % elements.size());
-				auto side_ac = this->sides().at((i + 2) % elements.size());
+				auto side_ab = this->sides().at(i).length();
+				auto side_bc = this->sides().at((i + 1) % elements.size()).length();
+				auto side_ac = this->sides().at((i + 2) % elements.size()).length();
 
 				// AM^2 = AB^2/2 + AC^2/2 - BC^2/4
 				auto am = sqrt((pow(side_ab, 2)) / 2 + (pow(side_ac, 2)) / 2 - (pow(side_bc, 2)) / 4);
@@ -308,11 +412,13 @@ namespace geo
 		}
 
 	private:
-		std::vector<T> elements{};
+		std::vector<my_vec_t> elements{};
 	};
 }
 
-using vector2i = geo::vector<int32_t, 2>;
-using polyi = geo::polygon<vector2i>;
-using vector2d = geo::vector<double, 2>;
-using polyd = geo::polygon<vector2d>;
+using vector2i_t = geo::vector<int32_t, 2>;
+using polyi_t = geo::polygon<int32_t, 2>;
+using linei_t = geo::line<int32_t, 2>;
+using vector2d_t = geo::vector<double, 2>;
+using polyd_t = geo::polygon<double, 2>;
+using lined_t = geo::line<double, 2>;

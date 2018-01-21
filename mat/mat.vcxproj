@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="algebra.hpp" />
     <ClInclude Include="statistics.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
