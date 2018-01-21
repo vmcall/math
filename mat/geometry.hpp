@@ -193,10 +193,6 @@ namespace geo
 
 			return alg::linear_equation<T>(slope, b);
 		}
-		auto intersection(geo::vector<T, N>& other) -> geo::vector<T, N>&
-		{
-
-		}
 
 		private:
 			std::array<T, N> elements{};
@@ -333,7 +329,9 @@ namespace geo
 		}
 		auto circumference() -> T
 		{	
-			return std::accumulate(this->side_lengths().begin(), this->side_lengths().end(), 0);
+			T result;
+			std::for_each(this->sides().begin(), this->sides().end(), [&result](my_line_t side) { result += side.length() });
+			return result;
 		}
 		auto angles() -> std::vector<T>
 		{
