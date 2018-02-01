@@ -191,6 +191,11 @@ namespace geo
 
 			auto b = midpoint.y() - slope * midpoint.x();
 
+			std::cout << "[Midpoint] " << midpoint.x() << ";" << midpoint.y() << std::endl;
+			std::cout << "[Delta] " << delta.x() << ";" << delta.y() << std::endl;
+			std::cout << "[Slope] " << slope << std::endl;
+			std::cout << "[B] " << b << std::endl;
+
 			return alg::linear_equation<T>(slope, b);
 		}
 
@@ -290,10 +295,8 @@ namespace geo
 			{
 				auto current_point = this->elements.at(i);
 				auto next_point = this->elements.at((i + 1) % elements.size());
-				auto test = my_line_t(current_point, next_point);
-				side_vec.emplace_back(test);
+				side_vec.emplace_back(current_point, next_point);
 			}
-				//side_vec.emplace_back(line<T, N>(, ));
 
 			return side_vec;
 		}
@@ -339,10 +342,13 @@ namespace geo
 
 			for (size_t i = 0; i < elements.size(); i++)
 			{
-				polygon<T> new_triangle{ this->elements[i], , this->elements[(i + 2) % elements.size()] };
+				polygon<T, N> new_triangle{ this->elements[i], this->elements[(i + 1) % elements.size()], this->elements[(i + 2) % elements.size()] };
 
 				// LAW OF COSINUS
-				const auto side_a = new_triangle.sides()[0].length(), side_b = new_triangle.sides()[1].length(), side_c = new_triangle.sides()[2].length;
+				auto side_a = new_triangle.sides()[0].length();
+				auto side_b = new_triangle.sides()[1].length();
+				auto side_c = new_triangle.sides()[2].length();
+
 				const auto cos0 = (pow(side_a, 2) + pow(side_b, 2) - pow(side_c, 2)) / (2 * side_a * side_b);
 				angles.emplace_back(acos(cos0) * 180 / M_PI);
 			}
